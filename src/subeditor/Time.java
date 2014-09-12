@@ -30,10 +30,37 @@ public class Time {
         updateGeneral();
     }
     
+    public void addMilli(int milliSecond) {
+        allMilliSecond += milliSecond;
+        updateGeneral();
+    }
+    
+    public int getMilli() {
+        return allMilliSecond;
+    }
+    
     public void updateGeneral() {
         hour = allMilliSecond % (60 * 60 * 1000);
         minute = allMilliSecond % (60 * 1000);
         second = allMilliSecond % 1000;
+    }
+    
+    public String toSRTFomat() {
+        String hourText = insertZero(2, hour);
+        String minuteText = insertZero(2, minute);
+        String secondText = insertZero(2, second);
+        String milliText = insertZero(3, milliSecond);
+        
+        return String.format("%s:%s:%s,%s", hourText, minuteText, secondText, milliText);
+    }
+    
+    public static String insertZero(int digit, int value) {
+        String text = value + "";
+        int offset = text.length() - digit;
+        for(int x = 0; x < offset; x++) {
+            text = "0" + text;
+        }
+        return text;
     }
     
 }

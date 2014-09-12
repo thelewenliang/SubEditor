@@ -14,6 +14,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -28,10 +31,12 @@ import javax.swing.UIManager;
  * @author Staff
  */
 public class SubEditor {
-    
+
     JFrame frame;
     String wholeText = "";
     File file;
+    ArrayList<Time> timeList = new ArrayList<>();
+    Pattern timePattern = Pattern.compile("(\\d\\d):(\\d\\d):(\\d\\d),(\\d\\d\\d)");
 
     public SubEditor() throws Exception {
         setupGUI();
@@ -44,22 +49,26 @@ public class SubEditor {
         boolean IS_MAC = lcOSName.startsWith("mac os x");
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         System.setProperty("apple.awt.fileDialogForDirectories", "false");
-        
+
         frame = new JFrame("SubEditor");
         JTextArea mainTextArea = new JTextArea();
-        
+
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("File");
         JMenuItem loadMenuItem = new JMenuItem("Load");
         loadMenuItem.addActionListener(a -> {
             file = getLoadFile();
-            if(file == null) {
+            if (file == null) {
                 return;
             }
             try {
                 BufferedReader br = new BufferedReader(new FileReader(file));
-                while(br.ready()) {
+                while (br.ready()) {
                     wholeText += br.readLine() + "\n";
+                }
+                Matcher timeMatcher = timePattern.matcher(wholeText);
+                while (timeMatcher.find()) {
+                    timeList.add(new Time(Integer.parseInt(timeMatcher.group(1)), Integer.parseInt(timeMatcher.group(2)), Integer.parseInt(timeMatcher.group(3)), Integer.parseInt(timeMatcher.group(4))));
                 }
                 mainTextArea.setText(wholeText);
             } catch (FileNotFoundException ex) {
@@ -71,7 +80,23 @@ public class SubEditor {
         JMenuItem saveMenuItem = new JMenuItem("Save");
         JMenu editMenu = new JMenu("Edit");
         JMenuItem refactorMenuItem = new JMenuItem("Refactor");
-        refactorMenuItem.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R,Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+        refactorMenuItem.addActionListener(a -> {
+            Matcher timeMatcher = timePattern.matcher(mainTextArea.getText());
+            int index = 0;
+            int offset = 0;
+            while (timeMatcher.find()) {
+                Time newTime = new Time(Integer.parseInt(timeMatcher.group(1)), Integer.parseInt(timeMatcher.group(2)), Integer.parseInt(timeMatcher.group(3)), Integer.parseInt(timeMatcher.group(4)));
+                if(newTime.getMilli() != timeList.get(index).getMilli()) {
+                    offset = newTime.getMilli() - timeList.get(index).getMilli();
+                    break;
+                }
+                index++;
+            }
+            for(int x = index - 1; x < timeList.size(); x++) {
+                timeList.get(x).addMilli(offset);
+            }
+        });
+        refactorMenuItem.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 
         fileMenu.add(loadMenuItem);
         fileMenu.add(saveMenuItem);
@@ -106,6 +131,7 @@ public class SubEditor {
     }
 
     public class SRTFileFilter implements FilenameFilter {
+
         @Override
         public boolean accept(File dir, String name) {
             return name.toLowerCase().endsWith(".srt");
