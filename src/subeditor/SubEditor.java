@@ -68,7 +68,7 @@ public class SubEditor {
                 }
                 Matcher timeMatcher = timePattern.matcher(wholeText);
                 while (timeMatcher.find()) {
-                    timeList.add(new Time(Integer.parseInt(timeMatcher.group(1)), Integer.parseInt(timeMatcher.group(2)), Integer.parseInt(timeMatcher.group(3)), Integer.parseInt(timeMatcher.group(4))));
+                    timeList.add(new Time(Integer.parseInt(timeMatcher.group(1)), Integer.parseInt(timeMatcher.group(2)), Integer.parseInt(timeMatcher.group(3)), Integer.parseInt(timeMatcher.group(4)), timeMatcher.regionStart()));
                 }
                 mainTextArea.setText(wholeText);
             } catch (FileNotFoundException ex) {
@@ -81,13 +81,18 @@ public class SubEditor {
         JMenu editMenu = new JMenu("Edit");
         JMenuItem refactorMenuItem = new JMenuItem("Refactor");
         refactorMenuItem.addActionListener(a -> {
-            Matcher timeMatcher = timePattern.matcher(mainTextArea.getText());
-            int index = 0;
             int offset = 0;
-            while (timeMatcher.find()) {
-                Time newTime = new Time(Integer.parseInt(timeMatcher.group(1)), Integer.parseInt(timeMatcher.group(2)), Integer.parseInt(timeMatcher.group(3)), Integer.parseInt(timeMatcher.group(4)));
-                if(newTime.getMilli() != timeList.get(index).getMilli()) {
-                    offset = newTime.getMilli() - timeList.get(index).getMilli();
+            int index = 0;
+            
+            String newWholeText = mainTextArea.getText();
+            for(Time x : timeList) {
+                String section = newWholeText.substring(x.index, x.end).trim();
+                String newText = section;
+                if(newText.equals(x.srtFormat)) {
+                    Matcher timeMatcher = timePattern.matcher(section);
+                    timeMatcher.find();
+                    Time newTime = new Time(Integer.parseInt(timeMatcher.group(1)), Integer.parseInt(timeMatcher.group(2)), Integer.parseInt(timeMatcher.group(3)), Integer.parseInt(timeMatcher.group(4)), timeMatcher.regionStart());
+                    offset = newTime.getMilli() - x.getMilli();
                     break;
                 }
                 index++;
@@ -95,6 +100,7 @@ public class SubEditor {
             for(int x = index - 1; x < timeList.size(); x++) {
                 timeList.get(x).addMilli(offset);
             }
+            
         });
         refactorMenuItem.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 

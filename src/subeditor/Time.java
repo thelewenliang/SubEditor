@@ -17,12 +17,18 @@ public class Time {
     private int second;
     private int milliSecond;
     private int allMilliSecond;
+    public int index;
+    public int end;
+    public String srtFormat;
     
-    public Time(int hour, int minute, int second, int milliSecond) {
+    public Time(int hour, int minute, int second, int milliSecond, int index) {
         this.hour = hour;
         this.minute = minute;
         this.second = second;
+        this.index = index;
+        end = index + 12;
         allMilliSecond = (milliSecond) + (second * 1000) + (minute * 60 * 1000) + (hour * 60 * 60 * 1000);
+        srtFormat = toSRTFormat();
     }
     
     public void setMilli(int milliSecond) {
@@ -45,7 +51,7 @@ public class Time {
         second = allMilliSecond % 1000;
     }
     
-    public String toSRTFomat() {
+    public String toSRTFormat() {
         String hourText = insertZero(2, hour);
         String minuteText = insertZero(2, minute);
         String secondText = insertZero(2, second);
