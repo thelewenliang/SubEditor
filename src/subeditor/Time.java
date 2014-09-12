@@ -25,8 +25,9 @@ public class Time {
         this.hour = hour;
         this.minute = minute;
         this.second = second;
+        this.milliSecond = milliSecond;
         this.index = index;
-        end = index + 12;
+        end = this.index + 12;
         allMilliSecond = (milliSecond) + (second * 1000) + (minute * 60 * 1000) + (hour * 60 * 60 * 1000);
         srtFormat = toSRTFormat();
     }
@@ -46,9 +47,15 @@ public class Time {
     }
     
     public void updateGeneral() {
-        hour = allMilliSecond % (60 * 60 * 1000);
-        minute = allMilliSecond % (60 * 1000);
-        second = allMilliSecond % 1000;
+        int remain = allMilliSecond;
+        hour = remain / (60 * 60 * 1000);
+        remain -= (hour * (60 * 60 * 1000));
+        minute = remain / (60 * 1000);
+        remain -= (minute * (60 * 1000));
+        second = remain / 1000;
+        remain -= (second * 1000);
+        milliSecond = remain;
+        srtFormat = toSRTFormat();
     }
     
     public String toSRTFormat() {
@@ -60,9 +67,9 @@ public class Time {
         return String.format("%s:%s:%s,%s", hourText, minuteText, secondText, milliText);
     }
     
-    public static String insertZero(int digit, int value) {
+    protected static String insertZero(int digit, int value) {
         String text = value + "";
-        int offset = text.length() - digit;
+        int offset = digit - text.length();
         for(int x = 0; x < offset; x++) {
             text = "0" + text;
         }
