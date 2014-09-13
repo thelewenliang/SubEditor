@@ -64,33 +64,13 @@ public class SubEditor {
         JMenuItem loadMenuItem = new JMenuItem("Load");
         loadMenuItem.setAccelerator(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
         loadMenuItem.addActionListener(a -> {
-            file = getLoadFile();
-            if (file == null) {
-                return;
-            }
-            try {
-                BufferedReader br = new BufferedReader(new FileReader(file));
-                while (br.ready()) {
-                    wholeText += br.readLine() + "\n";
-                }
-                Matcher timeMatcher = timePattern.matcher(wholeText);
-                while (timeMatcher.find()) {
-                    timeList.add(new Time(Integer.parseInt(timeMatcher.group(1)), Integer.parseInt(timeMatcher.group(2)), Integer.parseInt(timeMatcher.group(3)), Integer.parseInt(timeMatcher.group(4)), timeMatcher.start()));
-                }
-                mainTextArea.setText(wholeText);
-            } catch (FileNotFoundException ex) {
-                ex.printStackTrace();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            isPickedSaveFile = false;
+            load();
         });
         JMenuItem saveMenuItem = new JMenuItem("Save");
         saveMenuItem.addActionListener(a -> {
-            if(isPickedSaveFile == false) {
+            if (isPickedSaveFile == false) {
                 saveAs();
-            }
-            else {
+            } else {
                 try {
                     save();
                 } catch (IOException ex) {
@@ -151,6 +131,8 @@ public class SubEditor {
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
+        load();
+
     }
 
     public void saveAs() {
@@ -165,6 +147,29 @@ public class SubEditor {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    public void load() {
+        file = getLoadFile();
+        if (file == null) {
+            return;
+        }
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            while (br.ready()) {
+                wholeText += br.readLine() + "\n";
+            }
+            Matcher timeMatcher = timePattern.matcher(wholeText);
+            while (timeMatcher.find()) {
+                timeList.add(new Time(Integer.parseInt(timeMatcher.group(1)), Integer.parseInt(timeMatcher.group(2)), Integer.parseInt(timeMatcher.group(3)), Integer.parseInt(timeMatcher.group(4)), timeMatcher.start()));
+            }
+            mainTextArea.setText(wholeText);
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        isPickedSaveFile = false;
     }
 
     public File getSaveFile() {
@@ -182,8 +187,10 @@ public class SubEditor {
     }
 
     public void save() throws IOException {
-        FileWriter writer = new FileWriter(file);
-        writer.write(mainTextArea.getText());
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(mainTextArea.getText());
+            writer.flush();
+        }
     }
 
     public File getLoadFile() {
