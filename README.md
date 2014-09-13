@@ -9,6 +9,6 @@ Spaghetti-coded application for editing subtitles' timing. Edit any line's timin
 ##Warning
 - You **can not** edit anything other than timings.
 - You must edit timing with the correct format.
-- This application probably work in OS X only. *I don't know.*
+- This application probably only works in OS X. *I don't know.*
 - The source code doesn't contain any comment.
 
